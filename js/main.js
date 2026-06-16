@@ -1,25 +1,61 @@
 document.addEventListener("DOMContentLoaded", () => {
     const contentArea = document.getElementById("content-area");
     const navLinks = document.querySelectorAll(".nav-link");
+    const globalLoader = document.getElementById("global-loader");
 
+    // CONFIGURATION: Minimum time in milliseconds the spinner MUST stay visible
+    const MIN_LOAD_TIME = 800; 
+
+    // Loader Show Helper
+    function showLoader() {
+        globalLoader.classList.remove("hidden");
+        void globalLoader.offsetWidth; // Force reflow
+        globalLoader.classList.add("visible");
+    }
+
+    // Loader Hide Helper
+    function hideLoader() {
+        globalLoader.classList.remove("visible");
+        setTimeout(() => {
+            if (!globalLoader.classList.contains("visible")) {
+                globalLoader.classList.add("hidden");
+            }
+        }, 300); // Matches the 0.3s CSS fade-out transition
+    }
+
+    // Router function to load files dynamically
     function loadSection(sectionName) {
+        showLoader();
+        
+        // Record the exact time the loading started
+        const startTime = Date.now();
+
         fetch(`sections/${sectionName}.html`)
             .then(response => {
                 if (!response.ok) throw new Error("Page not found");
                 return response.text();
             })
             .then(html => {
-                contentArea.innerHTML = html;
-                updateActiveLink(sectionName);
+                // Calculate how many milliseconds have passed since we clicked
+                const elapsedTime = Date.now() - startTime;
                 
-               
-                bindInternalLinks();
+                // If elapsed time is less than our minimum target, calculate the remaining delay
+                const remainingDelay = Math.max(0, MIN_LOAD_TIME - elapsedTime);
 
-                if (sectionName === "home") {
-                    initTypewriter();
-                }
+                // Enforce the artificial delay before rendering content and removing loader
+                setTimeout(() => {
+                    contentArea.innerHTML = html;
+                    updateActiveLink(sectionName);
+                    bindInternalLinks();
+
+                    if (sectionName === "home") {
+                        initTypewriter();
+                    }
+                    hideLoader();
+                }, remainingDelay);
             })
             .catch(error => {
+                hideLoader();
                 contentArea.innerHTML = `<section class="page-section"><h2>Error</h2><p>Could not load section.</p></section>`;
                 console.error(error);
             });
@@ -45,19 +81,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-   
-navLinks.forEach(link => {
-    link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const target = link.getAttribute("href");
-        loadSection(target);
+    // Main event listener for Navbar Links
+    navLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+            if (link.getAttribute("target") === "_blank") return;
+            e.preventDefault();
+            const target = link.getAttribute("href");
+            loadSection(target);
+        });
     });
-});
 
-
+    // Default Section to Load on Launch
     loadSection("home");
 });
 
+/* ==========================================================================
+   Typewriter Animation Logic
+   ========================================================================== */
 function initTypewriter() {
     const textToType = "Ian Byegon";
     const typingSpeed = 150;

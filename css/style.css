@@ -396,3 +396,59 @@ body {
         font-size: 0.9rem; 
     }
 }
+
+/* ==========================================================================
+   High-Visibility Fixed Top Loader
+   ========================================================================== */
+.loader-overlay {
+    position: fixed;
+    top: 5.8rem; /* Places it exactly beneath the desktop navbar */
+    left: 0;
+    width: 100%;
+    height: 4px; /* Increased thickness so it's clearly visible */
+    z-index: 2000; /* Forces it to sit on top of EVERYTHING, including the navbar */
+    background-color: rgba(18, 18, 19, 0.6);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Visibility toggles handled by JS router */
+.loader-overlay.visible {
+    opacity: 1 !important;
+    display: block !important;
+}
+
+.loader-overlay.hidden {
+    display: none !important;
+}
+
+/* Enhanced scanning animation */
+.loader-progress-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--accent-coral) 50%, 
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: loadingScan 1s infinite linear; /* Accelerated sweep speed */
+}
+
+@keyframes loadingScan {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+/* Responsive adjustment mirroring your stacked mobile nav height */
+@media (max-width: 768px) {
+    .loader-overlay {
+        top: 7.8rem; 
+    }
+}
+
